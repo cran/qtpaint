@@ -1,0 +1,6 @@
+The qtpaint package provides a low-level canvas for interactive
+statistical graphics. It is a thin layer on top of the QGraphicsView
+framework of Qt. Key features include: OpenGL renderer optimized for
+statistical graphics, layered buffering strategy for efficient
+updates, and rapid querying of graphical elements within a screen
+region. Plots may respond to a wide range of user inputs.

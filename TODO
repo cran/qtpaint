@@ -1,0 +1,85 @@
+Immediate TODO:
+
+- RLayer::sizeHint is never called -- why?
+- Investigate indexing bug that does not handle rectangle query that
+  spans positive and negative values
+- Documentation.
+
+Long term thoughts:
+
+- Interactive graphics pipeline
+
+  There is nothing inherent about a pipeline that requires
+  implementation in C++, but we probably should for the sake of
+  performance. The design of the pipeline is pretty well fleshed out
+  in GGobi. Here are the basic features:
+
+  - Tabular data model (get/set values at given column and row),
+    including column metadata and row ids.
+  
+  - Each stage acts as a proxy, drawing data from its parent and
+    passing changes on to its children.
+
+  - Efficient means of obtaining values for an entire column
+  
+  - Efficient communication of the changes (transformation of columns,
+    filtering of rows/columns, and introducing rows/columns) is
+    achieved by passing "pipeline messages" between stages.
+
+  - Handles missing values (NAs)
+
+  - Every stage has a name and can be looked up by it.
+
+  Can Qt satisfy these requirements with the QAbstractItemModel?
+
+  - The data could be stored in a class based on QAbstractTableModel
+  
+  - Row and column metadata could be stored in the headers. Perhaps
+    though we should take the AnnotatedDataFrame approach: have a
+    table of variable metadata somehow associated with the actual data
+    table. Each stage would need both, as stages manipulate the
+    metadata, as well as the data.
+
+  - For proxying, there's QAbstractProxyModel. It's not clear how
+    useful this would be, though, as it seems only concerned with
+    filtering/sorting. Filtering is useful, but for efficiency we may
+    want a custom solution.
+
+  - Would need to extend QAbstractItemModel to support column access
+
+  - Event aggregation would need to be written from scratch
+  
+  - Missing values: could use sentinel value from R, but want to
+    encode multiple types of missing. Is this necessary?
+
+  - QObject has nice support for searching a tree of objects by name.
+
+- Some sort of high-level interactive graphics application. This will
+  help us get a better grasp on the low-level requirements. And it
+  might be useful in its own right.
+
+  - Plot types:
+    - Scatterplots, scatterplot matrices
+    - Parallel coordinates
+    - Barcharts, mosaic plots, fluctuation diagrams (Di and Heike?)
+    - Conventional histograms, with draggable bins (Di and Heike?)
+    - 1D ASH plots (using ash package), or is another smoother better?
+    - Maps
+
+  - Interaction modes:
+    - Pan/zoom
+    - Querying/identification
+    - Linked brushing / selection
+      - simple plot for choosing glyph/size/color
+      - get schemes from RColorBrewer
+    - Jittering (scatterplots)
+    - Binning (histograms)
+    - Popup menu in plot for options (bind QActions)
+
+  - Integration with tourr (Hadley)
+  
+  - GUI (low priority):
+    - Variable list, with option for including visual attributes
+    - Some way to create new plots
+    - Some way to change variables of existing plots
+    - Some way to set interaction modes

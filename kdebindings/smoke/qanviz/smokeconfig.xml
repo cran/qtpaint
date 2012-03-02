@@ -1,0 +1,39 @@
+<config>
+    <resolveTypedefs>true</resolveTypedefs>
+    <qtMode>true</qtMode>
+    <generator>smoke</generator>
+    <moduleName>qanviz</moduleName>
+<!--
+    <parentModules>
+        <module>qt</module>
+    </parentModules>
+-->
+    <parts>1</parts>
+    <scalarTypes>
+        <!-- classes, but represented as a scalar ($) in munged names -->
+        <typeName>QString</typeName>
+    </scalarTypes>
+    <voidpTypes>
+        <!-- classes, but they are represented as Smoke::t_voidp -->
+        <typeName>QStringList</typeName>
+        <typeName>QString</typeName>
+        <typeName>QByteArray</typeName>
+        <!-- manually bound for now -->
+        <typeName>Qanviz::Painter</typeName>
+    </voidpTypes>
+    <exclude>
+    </exclude>
+    <classList> 
+      <class>Qanviz::Layer</class>
+      <class>Qanviz::PlotView</class>
+      <class>Qanviz::RLayer</class>
+      <class>Qanviz::OverlayScene</class>
+<!--
+      <class>OpenGLPainter</class>
+      <class>QtBasePainter</class>
+      <class>ScenePainter</class>
+      <class>Painter</class>
+      <class>QtPainter</class>
+-->
+    </classList>
+</config>

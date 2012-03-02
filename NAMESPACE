@@ -1,0 +1,67 @@
+useDynLib(qtpaint)
+
+## the core Smoke library
+export(Qanviz)
+
+## to load our library
+importFrom(qtbase, qlibrary)
+
+## the Qt library
+importFrom(qtbase, Qt)
+
+## simple constructors from qtbase
+importFrom(qtbase, qrect, qfont, qpoint)
+
+## the Painter API
+export("qantialias<-",
+       qdrawCircle,
+       "qdash<-",
+       "qfillColor<-",
+       "qfont<-",
+       qdrawGlyph,
+       "qhasFill<-",
+       "qhasStroke<-",
+       "qlineWidth<-",
+       "qglyphExpansion<-",
+       "qdeviceTransformEnabled<-",
+       qdrawPoint,
+       qdrawPolygon,
+       qdrawPath,
+       qdrawLine,
+       qdrawRect,
+       qdrawSegment,
+       "qstrokeColor<-",
+       qdrawText,
+       qstrWidth,
+       qstrHeight,
+       qdrawImage,
+       qdeviceTransform,
+       "qdeviceTransform<-",
+       qtextExtents
+       )
+
+## convenience constructors
+export(qlayer, qplotView, qscene)
+
+## glyph generators
+export(qglyphCircle, qglyphSquare, qglyphTriangle, qglyphText, qglyphSegment)
+
+## some transformation conveniences
+export(qvmap, qflipY)
+S3method(qflipY, QRect)
+S3method(qflipY, QRectF)
+S3method(qflipY, numeric)
+
+## layer wrappers
+S3method("[<-", "Qanviz::Layer")
+S3method("[", "Qanviz::Layer")
+
+## updating
+export(qupdate)
+S3method(qupdate, QGraphicsView)
+S3method(qupdate, QGraphicsScene)
+S3method(qupdate, QGraphicsItem)
+
+## scene fast paths: should these be made public?
+##export(qscene.points, qscene.lines, qscene.segments, qscene.rect,
+##       qsetItemFlags, qsetTextItemInteraction)
