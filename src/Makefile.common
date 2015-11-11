@@ -1,0 +1,29 @@
+RBIN := "${R_HOME}/bin/R"
+
+CXX := $(shell ${RBIN} CMD config CXX)
+CXX_BIN := $(firstword ${CXX})
+CXX_ARGS := $(filter-out $(CXX_BIN), $(CXX))
+
+LIBR := $(subst $\",,$(LIBR))
+
+CMAKE_ARGS += -DR_CXX="${CXX_BIN}" \
+	      -DR_LIBRARIES="$(strip ${SHLIB_CXXLDFLAGS} ${LIBR})" \
+	      -DR_INCLUDE_DIR=${R_INCLUDE_DIR} \
+	      -DCMAKE_CXX_FLAGS="${CXX_ARGS}" \
+	      -DCMAKE_SHARED_LINKER_FLAGS="${CXX_ARGS}" \
+              -DQTBASE_DIR="$(QTBASE_DIR)"
+
+QTBASE_DIR := $(shell $(R_HOME)/bin/Rscript -e \
+                "cat(system.file(package='qtbase'))")
+
+all:
+	mkdir -p ../src-build;
+	cd ../src-build; \
+	$(CMAKE) ../src $(CMAKE_ARGS); \
+	DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:"${QTBASE_DIR}"/local/lib \
+	LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:"${QTBASE_DIR}"/local/lib make install
+
+clean:
+	rm -rf ../src-build
+	rm -rf ../inst/local
+	rm -f qtpaint.so qtpaint.dll

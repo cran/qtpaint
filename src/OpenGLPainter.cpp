@@ -252,9 +252,7 @@ QImage OpenGLPainter::rasterizeGlyph(const QPainterPath &path) {
   return glyph;
 }
 
-// possible fast path for multiple colors, if stroke/fill the same:
-// push colors into array, draw picture in white, use texture modulation
-// we only draw the glyph once
+/* FIXME: what about using z-level and GL_DEPTH_TEST? */
 
 void OpenGLPainter::drawGlyphs(const QPainterPath &path, double *x, double *y,
                                double *size, QColor *stroke,
@@ -327,6 +325,24 @@ void OpenGLPainter::prepareDrawGlyphs(void) {
   glPushAttrib(GL_TEXTURE_BIT | GL_ENABLE_BIT | GL_POINT_BIT);
   glEnable(GL_TEXTURE_2D);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  /*
+    FIXME: point sprites, after a long period of deprecation, have
+    been removed with OpenGL 3.2. The alternative is to use a shader
+    program, like:
+    void main()
+    {
+    gl_FragColor = texture2D(Texture0, gl_PointCoord);
+    }
+   */
+  /*
+    Point sprites do not exist in OpenGL 1.1 (Windows). Need to
+    dynamically obtain the function pointers via the extensions API.
+   */
+  #ifdef Q_OS_WIN
+  PFNGLPOINTPARAMETERIPROC glPointParameteri;
+  glPointParameteri = (PFNGLPOINTPARAMETERIPROC)
+    QGLContext::currentContext()->getProcAddress("glPointParameteri");
+  #endif
   glEnable(GL_POINT_SPRITE);
   glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
   glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);

@@ -75,7 +75,13 @@
 ##' @param geometry A \code{QRectF}, possibly created by
 ##' \code{\link[qtbase]{qrect}}, indicating the position and size of
 ##' the layer in figure/scene coordinates. This is overridden by the
-##' parent grid layout, so is really only useful for a top-level layer.
+##' parent grid layout, so is really only useful for a top-level
+##' layer. A warning will be issued if the geometry is specified along
+##' with a parent layer. We also issue a warning if this argument is
+##' specified when the scene has a view in "geometry" rescale mode,
+##' because the view determines the geometry. The default geometry is
+##' the bounding rectangle of the scene, if not null, or 600x400
+##' otherwise.
 ##' @param clip Logical indicating whether to clip drawing to within the layer
 ##' @param cache Logical indicating whether to cache drawing, which
 ##' helps performance for relatively static layers sitting under more
@@ -85,7 +91,7 @@
 ##' @examples
 ##' scene <- qscene()
 ##' layer <- qlayer(scene, function(layer, painter) {
-##'   qdrawCircle(1:10, 1:10)
+##'   qdrawCircle(painter, 1:10, 1:10, 1)
 ##' }, limits = qtbase::qrect(0, 0, 11, 11))
 ##' qplotView(scene)
 qlayer <- function(parent = NULL, paintFun = NULL, keyPressFun = NULL,
@@ -99,7 +105,7 @@ qlayer <- function(parent = NULL, paintFun = NULL, keyPressFun = NULL,
                    focusInFun = NULL, focusOutFun = NULL,
                    sizeHintFun = NULL, limits = qrect(),
                    row = 0L, col = 0L, rowSpan = 1L, colSpan = 1L,
-                   geometry = qrect(0, 0, 600, 400), clip = cache,
+                   geometry = defaultLayerGeometry(parent), clip = cache,
                    cache = FALSE)
 {
   if (cache && !clip)
@@ -129,16 +135,45 @@ qlayer <- function(parent = NULL, paintFun = NULL, keyPressFun = NULL,
                .normArgCallback(sizeHintFun))
   layer <- .Call("qanviz_RLayer", args, PACKAGE="qtpaint")
   if (inherits(parent, "Qanviz::Layer")) {
+    if (!missing(geometry)) {
+      warning("geometry will be overridden by parent layout")
+    }
     parent$addLayer(layer, row, col, rowSpan, colSpan)
-  } else if (inherits(parent, "QGraphicsScene"))
+  } else if (inherits(parent, "QGraphicsScene")) {
     parent$addItem(layer)
-  else if (!is.null(parent)) stop("Unsupported parent type")
+    viewGeometry <- viewGeometry(parent)
+    if (!is.null(viewGeometry)) {
+      if (!missing(geometry)) {
+        warning("geometry will be overridden by view in geometry rescale mode")
+      }
+      geometry <- viewGeometry
+    }
+  } else if (!is.null(parent)) stop("Unsupported parent type")
   layer$geometry <- geometry
   layer$setLimits(limits)
   layer$setFlag(Qt$QGraphicsItem$ItemClipsToShape, clip)
   if (!cache)
     layer$setCacheMode(Qt$QGraphicsItem$NoCache)
   layer
+}
+
+defaultLayerGeometry <- function(parent) {
+  geometry <- qrect(0, 0, 600, 400)
+  if (is(parent, "QGraphicsScene")) {
+    if (!parent$sceneRect$isNull()) {
+      geometry <- parent$sceneRect
+    }
+  }
+  geometry
+}
+
+viewGeometry <- function(scene) {
+  views <- scene$views()
+  views <- Filter(function(v) v$rescaleMode() == Qanviz$PlotView$WidgetGeometry,
+                  views)
+  if (length(views) > 0L) {
+    views[[1L]]$viewport()$rect
+  }
 }
 
 .normArgCallback <- function(callback) {
